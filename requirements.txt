@@ -8,5 +8,5 @@ flake8>=7.0.0
 pydocstyle>=6.3.0
 mypy>=1.11.0
 pyright>=1.1.380
-bandit>=1.7.9
+bandit>=1.9.4
 pdoc>=14.0.0
