@@ -1,0 +1,81 @@
+name: CI/CD TPFI IS2
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+jobs:
+  quality-test-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12 en entorno virtual
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias desde requirements.txt
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validar reglas de formato con Ruff
+        run: |
+          source venv/bin/activate
+          ruff check patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Validar formato consistente con Black
+        run: |
+          source venv/bin/activate
+          black --check --line-length 79 patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Validar reglas PEP8 con Flake8
+        run: |
+          source venv/bin/activate
+          flake8 patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Validar convenciones PEP257 de docstrings con Pydocstyle
+        run: |
+          source venv/bin/activate
+          pydocstyle patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Validar tipado estático con MyPy
+        run: |
+          source venv/bin/activate
+          mypy --ignore-missing-imports patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Validar tipado estático con PyRight
+        run: |
+          source venv/bin/activate
+          pyright patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Evaluación básica de seguridad con Bandit
+        run: |
+          source venv/bin/activate
+          bandit -r patterns.py singletonproxyobserver.py singletonclient.py observerclient.py test_tpfi.py acceptance_test.py
+
+      - name: Ejecutar Tests Unitarios con Pytest (Cobertura >= 85%)
+        run: |
+          source venv/bin/activate
+          pytest test_tpfi.py --cov=patterns --cov=singletonproxyobserver --cov=singletonclient --cov=observerclient --cov-report=term-missing --cov-fail-under=85
+
+      - name: Generar y actualizar documentación automática con pdoc
+        run: |
+          source venv/bin/activate
+          pdoc patterns.py singletonproxyobserver.py singletonclient.py observerclient.py acceptance_test.py -o docs_html
+
+      - name: Publicar artefacto de documentación actualizada
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentacion-pdoc-html
+          path: docs_html/
