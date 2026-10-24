@@ -75,7 +75,7 @@ jobs:
           pdoc patterns.py singletonproxyobserver.py singletonclient.py observerclient.py acceptance_test.py -o docs_html
 
       - name: Publicar artefacto de documentación actualizada
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: documentacion-pdoc-html
           path: docs_html/
